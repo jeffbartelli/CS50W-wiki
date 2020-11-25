@@ -5,8 +5,7 @@
 {% endblock %}
 
 {% block body %}
-    {{ entry|safe }}
-    <!-- I don't want to keep this button below. Reformat it later. -->
-    <a class="btn btn-outline-secondary" href="/wiki/{{ entryTitle }}/edit" role="button">Edit</a>    
-    
+    <h1>{{ entryTitle}}</h1>
+    <p>{{ entry|safe }}</p>
+    <a class="btn btn-outline-primary" href="/wiki/{{ entryTitle }}/edit" role="button">Edit</a>       
 {% endblock %}
