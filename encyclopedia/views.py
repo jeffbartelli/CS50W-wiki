@@ -5,6 +5,7 @@ from django import forms
 
 from . import util
 from markdown2 import Markdown
+from random import choice
 
 class EntryForm(forms.Form):
     title = forms.CharField(label="Title", widget=forms.TextInput(attrs={'class':'form-control col-md-8 col-lg-8'}))
@@ -19,18 +20,30 @@ def index(request):
 def entry(request, entry):
     mark = Markdown()
     page = util.get_entry(entry)
-    if page == None:
-        return render(request, "encyclopedia/noEntry.html", {
-            "entryTitle": entry    
-        })
-    else:
+    if page != None:
         return render(request, "encyclopedia/entry.html", {
             "entryTitle": entry,
             "entry": mark.convert(page)   
         })
+    else:
+        return render(request, "encyclopedia/noEntry.html", {
+            "entryTitle": entry    
+        })
 
 def search(request):
-    return request
+    term = request.GET.get('q','')
+    if util.get_entry(term) is None:
+        partialTerms = []
+        for n in util.list_entries():
+            if value.upper() in n.upper():
+                partialTerms.append(entry)
+        return render(request, "encyclopedia/index.html", {
+            "entries": partialTerms,
+            "search": True,
+            "value": value
+        })
+    else:
+        return HttpResponseRedirect(reverse("entry", kwargs={"entry": value}))
 
 def newEntry(request):
     if request.method == "POST":
@@ -61,7 +74,23 @@ def newEntry(request):
         })
 
 def edit(request, entry):
-    return request
+    page = util.get_entry(entry)
+    if page is None:
+        return render(request, "encyclopedia/noEntry.html", {
+            "entryTitle": entry
+        })
+    else:
+        form = EntryForm()
+        form.fields["title"].initial = entry
+        form.fields["title"].widget = forms.HiddenInput()
+        form.fields["content"].initial = page
+        form.fields["edit"].initial = True
+        return render(request, "encyclopedia/newEntry.html", {
+            "form": form,
+            "edit": form.fields["edit"].initial,
+            "entryTitle": form.fields["title"].initial
+        })
 
 def random(request):
-    return request
+    randomize = random.choice(util.list_entries())
+    return HttpResponseRedirect(reverse("entry", kwargs={"entry": randomize}))
